@@ -99,7 +99,6 @@ public class DE {
 
     public double optimize () {
 
-        System.out.println(F+" "+Cr+" "+NP+" "+dim+" ");
 
         while (generation <= MaxGeneration) {
             for (int i = 0;  i < NP;  i++) {
