@@ -1,6 +1,10 @@
 package problem;
 
-public class Ackley implements BlackBoxProblem {
+public class Ackley extends BlackBoxProblem {
+    public Ackley(){
+        super(-30,30);
+        dim = 10;
+    }
     @Override
     public double evaluate(double[] x, int dim) {
         int i;
