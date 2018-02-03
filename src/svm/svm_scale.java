@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.Formatter;
 import java.util.StringTokenizer;
 
-class svm_scale
+public class svm_scale
 {
 	private String line = null;
 	private double lower = -1.0;
@@ -19,6 +19,8 @@ class svm_scale
 	private int max_index;
 	private long num_nonzeros = 0;
 	private long new_num_nonzeros = 0;
+
+	StringBuilder scaleString = new StringBuilder();
 
 	private static void exit_with_help()
 	{
@@ -52,8 +54,8 @@ class svm_scale
 				value = y_lower + (y_upper-y_lower) *
 				(value-y_min) / (y_max-y_min);
 		}
-
-		System.out.print(value + " ");
+		scaleString.append(value + " ");
+		//System.out.print(value + " ");
 	}
 
 	private void output(int index, double value)
@@ -73,7 +75,8 @@ class svm_scale
 
 		if(value != 0)
 		{
-			System.out.print(index + ":" + value + " ");
+			//System.out.print(index + ":" + value + " ");
+			scaleString.append(index + ":" + value + " ");
 			new_num_nonzeros++;
 		}
 	}
@@ -84,7 +87,7 @@ class svm_scale
 		return line;
 	}
 
-	private void run(String []argv) throws IOException
+	private String run(String []argv) throws IOException
 	{
 		int i,index;
 		BufferedReader fp = null, fp_restore = null;
@@ -303,7 +306,7 @@ class svm_scale
 			formatter.format("%.16g %.16g\n", lower, upper);
 			for(i=1;i<=max_index;i++)
 			{
-				if(feature_min[i] != feature_max[i]) 
+				if(feature_min[i] != feature_max[i])
 					formatter.format("%d %.16g %.16g\n", i, feature_min[i], feature_max[i]);
 			}
 			fp_save.write(formatter.toString());
@@ -332,7 +335,8 @@ class svm_scale
 
 			for(i=next_index;i<= max_index;i++)
 				output(i, 0);
-			System.out.print("\n");
+			//System.out.print("\n");
+			scaleString.append("\r\n");
 		}
 		if (new_num_nonzeros > num_nonzeros)
 			System.err.print(
@@ -341,11 +345,13 @@ class svm_scale
 			+"Use -l 0 if many original feature values are zeros\n");
 
 		fp.close();
+
+		return scaleString.toString();
 	}
 
-	public static void main(String argv[]) throws IOException
+	public static String main(String argv[]) throws IOException
 	{
 		svm_scale s = new svm_scale();
-		s.run(argv);
+		return s.run(argv);
 	}
 }
