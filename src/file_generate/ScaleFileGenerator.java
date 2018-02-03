@@ -47,6 +47,26 @@ public class ScaleFileGenerator {
     }
 
     public void predictFileScale(String problemName){
-
+        String parametersFilePath = SVM_FILE_PATH + "scale/"+problemName+"_scale_parameters";
+        String predictFilePath = SVM_FILE_PATH + "predict/"+problemName+"_predict";
+        String predictScaledFilePath = SVM_FILE_PATH + "predict/"+problemName+"_predict_scaled";
+        String[] args = new String[]{
+                "-y",
+                lower+"",
+                upper+"",
+                "-r",
+                parametersFilePath,
+                predictFilePath
+        };
+        try {
+            String res = svm_scale.main(args);
+            FileOutputStream fos = new FileOutputStream(predictScaledFilePath);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            bw.write(res);
+            bw.flush();
+            //System.out.println(res);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
