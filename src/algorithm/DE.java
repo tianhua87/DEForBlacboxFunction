@@ -83,14 +83,13 @@ public class DE {
 
     }
 
-    public DE(int dim, int NP, double f, double cr, double lowLimit, double highLimit, DEInitializer initializer,
-              BlackBoxProblem blackBoxProblem) {
+    public DE(int dim, int NP, double f, double cr, DEInitializer initializer, BlackBoxProblem blackBoxProblem) {
         this.dim = dim;
         this.NP = NP;
         F = f;
         Cr = cr;
-        this.lowLimit = lowLimit;
-        this.highLimit = highLimit;
+        this.lowLimit = blackBoxProblem.lowLimit;
+        this.highLimit = blackBoxProblem.highLimit;
         this.initializer = initializer;
         deRandom = new DERandom();
         this.blackBoxProblem = blackBoxProblem;

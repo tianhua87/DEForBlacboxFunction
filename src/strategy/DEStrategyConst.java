@@ -2,7 +2,7 @@ package strategy;
 
 public class DEStrategyConst {
 
-    public static String[] DEStrategyName = new String[]{
+    public static final String[] DEStrategyName = new String[]{
             "DEBest1Bin",
             "DEBest2Bin"
     };
