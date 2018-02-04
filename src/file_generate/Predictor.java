@@ -13,7 +13,7 @@ public class Predictor {
         String args = predictPath + " " + modelPath + " " + resultPath;
         try {
             svm_predict.main(args.split(" "));
-            System.out.println("预测结束");
+            System.out.println("-------------预测结束---------------------------------");
         } catch (IOException e) {
             e.printStackTrace();
         }

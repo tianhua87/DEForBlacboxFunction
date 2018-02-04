@@ -14,6 +14,7 @@ public class ModelGenerator {
         String args = "-s 3 -t 2 "+parameter+" "+scaleTrainFilePath+" "+modelFilrPath;
         try {
             svm_train.main(args.split(" "));
+            System.out.println("--------------------"+problemName+"模型生成结束--------------------");
         } catch (IOException e) {
             e.printStackTrace();
         }

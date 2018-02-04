@@ -46,6 +46,7 @@ public class ScaleFileGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("--------------------"+problemName+"训练文件归一化结束--------------------");
     }
 
     public void predictFileScale(String problemName){
@@ -72,5 +73,6 @@ public class ScaleFileGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("--------------------"+problemName+"预测文件归一化结束--------------------");
     }
 }

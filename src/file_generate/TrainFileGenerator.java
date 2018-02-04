@@ -9,7 +9,7 @@ import java.io.OutputStreamWriter;
 
 public class TrainFileGenerator {
 
-    final int COUNT = 100;
+    final int COUNT = 1000;
     DERandom deRandom = new DERandom();
     public void trainFileGenerate(String problemName){
         try {
@@ -38,6 +38,7 @@ public class TrainFileGenerator {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("--------------------"+problemName+"训练文件生成结束--------------------");
     }
 
      void createRandomVector(double[] x, BlackBoxProblem blackBoxProblem){

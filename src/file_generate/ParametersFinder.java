@@ -21,6 +21,7 @@ public class ParametersFinder {
             String parameterFilePath = "svmfile/parameters/"+problemName+"_para_reg";
             writeFile(parameterFilePath,ps);
         }
+        System.out.println("--------------------"+problemName+"参数寻优生成结束--------------------");
 
     }
 

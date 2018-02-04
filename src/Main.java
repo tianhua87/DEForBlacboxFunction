@@ -13,20 +13,18 @@ public class Main {
 //        TrainFileGenerator tfg = new TrainFileGenerator();
 //        tfg.trainFileGenerate("Ackley");
 
-//        TrainFileGenerator tfg = new TrainFileGenerator();
-//        tfg.trainFileGenerate("Beale");
+        ScaleFileGenerator sfg = new ScaleFileGenerator();
+        sfg.trainFileScale("Ackley");
+        sfg.predictFileScale("Ackley");
 
-//        ScaleFileGenerator sfg = new ScaleFileGenerator();
-//        sfg.trainFileScale("Ackley");
-//        sfg.predictFileScale("Ackley");
-//
-//        ParametersFinder pf = new ParametersFinder();
-//        pf.findRegTrainParameters("Ackley");
-//        ModelGenerator mg = new ModelGenerator();
-//        mg.generateModel("Ackley");
+        ParametersFinder pf = new ParametersFinder();
+        pf.findRegTrainParameters("Ackley");
+        ModelGenerator mg = new ModelGenerator();
+        mg.generateModel("Ackley");
 
         Predictor predictor = new Predictor();
         predictor.predict("Ackley");
+        //18：35-19：19
 
     }
 
