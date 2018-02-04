@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-class svm_train {
+public class svm_train {
 	private svm_parameter param;		// set by parse_command_line
 	private svm_problem prob;		// set by read_problem
 	private svm_model model;

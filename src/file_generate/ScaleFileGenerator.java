@@ -41,6 +41,8 @@ public class ScaleFileGenerator {
             bw.write(res);
             bw.flush();
             //System.out.println(res);
+            bw.close();
+            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -64,6 +66,8 @@ public class ScaleFileGenerator {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write(res);
             bw.flush();
+            bw.close();
+            fos.close();
             //System.out.println(res);
         } catch (IOException e) {
             e.printStackTrace();

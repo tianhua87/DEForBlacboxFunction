@@ -1,10 +1,9 @@
 import algorithm.CommonDEInitializer;
 import algorithm.DE;
 import algorithm.DEInitializer;
-import file_generate.ScaleFileGenerator;
+import file_generate.*;
 import problem.Ackley;
 import problem.BlackBoxProblem;
-import file_generate.TrainFileGenerator;
 
 import java.io.IOException;
 
@@ -17,9 +16,17 @@ public class Main {
 //        TrainFileGenerator tfg = new TrainFileGenerator();
 //        tfg.trainFileGenerate("Beale");
 
-        ScaleFileGenerator sfg = new ScaleFileGenerator();
-        //sfg.trainFileScale("Ackley");
-        sfg.predictFileScale("Ackley");
+//        ScaleFileGenerator sfg = new ScaleFileGenerator();
+//        sfg.trainFileScale("Ackley");
+//        sfg.predictFileScale("Ackley");
+//
+//        ParametersFinder pf = new ParametersFinder();
+//        pf.findRegTrainParameters("Ackley");
+//        ModelGenerator mg = new ModelGenerator();
+//        mg.generateModel("Ackley");
+
+        Predictor predictor = new Predictor();
+        predictor.predict("Ackley");
 
     }
 

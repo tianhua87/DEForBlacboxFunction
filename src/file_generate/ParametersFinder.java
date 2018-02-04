@@ -18,7 +18,7 @@ public class ParametersFinder {
             String []p = parameters.split(" ");
             String ps = "-c "+p[0]+" -g "+p[1]+" -p "+p[2];
 
-            String parameterFilePath = "svmfile/parameters/"+problemName+"para_reg";
+            String parameterFilePath = "svmfile/parameters/"+problemName+"_para_reg";
             writeFile(parameterFilePath,ps);
         }
 
@@ -30,6 +30,8 @@ public class ParametersFinder {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write(str);
             bw.flush();
+            bw.close();
+            fos.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

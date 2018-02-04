@@ -23,7 +23,10 @@ public class ModelGenerator {
         try {
             FileInputStream fis =new FileInputStream("svmfile/parameters/"+problemName+"_para_reg");
             BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-            return br.readLine();
+            String res = br.readLine();
+            br.close();
+            fis.close();
+            return res;
         } catch (Exception e) {
             e.printStackTrace();
         }

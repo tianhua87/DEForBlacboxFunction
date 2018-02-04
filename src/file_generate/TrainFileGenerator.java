@@ -9,7 +9,7 @@ import java.io.OutputStreamWriter;
 
 public class TrainFileGenerator {
 
-    final int COUNT = 1000;
+    final int COUNT = 100;
     DERandom deRandom = new DERandom();
     public void trainFileGenerate(String problemName){
         try {
@@ -33,6 +33,8 @@ public class TrainFileGenerator {
                 line.delete(0,line.length());
 
             }
+            if (bw != null)bw.close();
+            if(fos != null)fos.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
