@@ -19,16 +19,20 @@ public class ParametersFinder {
             String ps = "-c "+p[0]+" -g "+p[1]+" -p "+p[2];
 
             String parameterFilePath = "svmfile/parameters/"+problemName+"para_reg";
-            try {
-                FileOutputStream fos = new FileOutputStream(parameterFilePath);
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-                bw.write(ps);
-                bw.flush();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            writeFile(parameterFilePath,ps);
         }
 
+    }
+
+    public void writeFile(String filePath,String str){
+        try {
+            FileOutputStream fos = new FileOutputStream(filePath);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            bw.write(str);
+            bw.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public String execPythonScript(String scriptFile, String arg){
