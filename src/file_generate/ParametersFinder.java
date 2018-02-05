@@ -47,7 +47,7 @@ public class ParametersFinder {
             BufferedReader br = new BufferedReader(ir);
             String line;
             while((line = br.readLine())!=null){
-                //System.out.println(line);
+                System.out.println(line);
                 if(line != null)
                     parameters = line;
             }

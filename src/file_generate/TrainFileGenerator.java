@@ -9,7 +9,7 @@ import java.io.OutputStreamWriter;
 
 public class TrainFileGenerator {
 
-    final int COUNT = 1000;
+    final int COUNT = 100;
     DERandom deRandom = new DERandom();
     public void trainFileGenerate(String problemName){
         try {
@@ -21,8 +21,8 @@ public class TrainFileGenerator {
             StringBuilder line = new StringBuilder();
             double res;
             for (int i = 0; i < COUNT; i++){
-                createRandomVector(x,blackBoxProblem);
-                res = blackBoxProblem.evaluate(x,blackBoxProblem.dim);
+                createRandomVector(x,blackBoxProblem);//随机生成个体
+                res = blackBoxProblem.evaluate(x,blackBoxProblem.dim); //评价个体
                 line.append(res);
                 for (int j = 0 ; j < blackBoxProblem.dim; j++){
                     line.append(" ").append(j+1).append(":").append(x[j]);
@@ -31,7 +31,6 @@ public class TrainFileGenerator {
                 bw.write(line.toString());
                 bw.flush();//重要，重要，重要
                 line.delete(0,line.length());
-
             }
             if (bw != null)bw.close();
             if(fos != null)fos.close();
