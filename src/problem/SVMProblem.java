@@ -39,7 +39,7 @@ public class SVMProblem extends BlackBoxProblem {
         for (int i=0;i<dim;i++){
             vector+=" "+(i+1)+":"+X[i];
         }
-        System.out.println(vector);
+        //System.out.println(vector);
         try {
             FileOutputStream fos = new FileOutputStream(predictPath);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
