@@ -29,19 +29,23 @@ public class Main {
 //        TrainFileGenerator tfg = new TrainFileGenerator();
 //        tfg.trainFileGenerate(pro);
 
-        ScaleFileGenerator sfg = new ScaleFileGenerator();
+//        ScaleFileGenerator sfg = new ScaleFileGenerator();
 //        sfg.trainFileScale(pro);
-        sfg.predictFileScale(pro);
+//        sfg.predictFileScale(pro);
 //
 //        ParametersFinder pf = new ParametersFinder();
 //        pf.findRegTrainParameters(pro);
 //        ModelGenerator mg = new ModelGenerator();
 //        mg.generateModel(pro);
-
-        Predictor predictor = new Predictor();
-        predictor.predict(pro);
+//
+//        Predictor predictor = new Predictor();
+//        predictor.predict(pro);
 
         //testSVM();
+
+        //Beale_SVM svm = new Beale_SVM();
+        testDE();
+
     }
 
     public static void testDE() {
@@ -55,7 +59,8 @@ public class Main {
     public static void testSVM(){
         BlackBoxProblem blackBoxProblem = new Beale_SVM();
         double X[]=new double[]{-3.5531411069213337 ,0.3727889003046929};
-        blackBoxProblem.evaluate(X,2);
+        double res1 = blackBoxProblem.evaluate(X,2);
+        System.out.println("实际结果:"+res1);
         BlackBoxProblem blackBoxProblem1 = new Beale();
         double res = blackBoxProblem1.evaluate(X,2);
         System.out.println("理论结果:" + res);
