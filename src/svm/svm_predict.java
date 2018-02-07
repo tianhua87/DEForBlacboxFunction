@@ -15,7 +15,7 @@ public class svm_predict {
 	{
 		public void print(String s)
 		{
-			System.out.print(s);
+			//System.out.print(s);
 		}
 	};
 
