@@ -9,6 +9,7 @@ public class DE {
 
     public int generation  = 0;
     public double mincost  = Double.MAX_VALUE;
+    public double lastMincost = Double.MAX_VALUE ;
 
     public int     dim;
     public int     NP;
@@ -21,6 +22,10 @@ public class DE {
 
     public DEStrategy Strategem[];
     public int current_strategy = 0;
+
+    //如果 MAX_COUNTER 次后当前最优解依然没有改变 ，则终止进化
+    private int counter = 0;
+    private static final int MAX_COUNTER = 100;
 
     public BlackBoxProblem blackBoxProblem;
 
@@ -98,8 +103,7 @@ public class DE {
 
     public double optimize () {
 
-
-        while (generation <= MaxGeneration) {
+        while (!isCompleted()) {
             for (int i = 0;  i < NP;  i++) {
                 assign (trial, g0[i]);
                 do rnd[0] = deRandom.nextInt (NP);
@@ -141,13 +145,21 @@ public class DE {
                     assign (g1[i], g0[i]);
                 }
             }
+            if (lastMincost != mincost) {
+                counter = 0;
+                lastMincost = mincost;
+            } else {
+                counter++;
+            }
+
+            System.out.println(mincost);
 
             assign (genbest, best);
 
             double gx[][] = g0;
             g0 = g1;
             g1 = gx;
-
+            System.out.println("代数：" + generation);
             generation++;
         }
         for (int i = 0 ;i < dim;i++)
@@ -162,5 +174,9 @@ public class DE {
         for (i=0; i<dim; i++) {
             to[i] = from[i];
         }
+    }
+
+    private boolean isCompleted(){
+        return counter >= MAX_COUNTER;
     }
 }
