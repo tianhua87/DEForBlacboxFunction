@@ -73,6 +73,6 @@ public class ScaleFileGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("--------------------"+problemName+"预测文件归一化结束--------------------");
+        //System.out.println("--------------------"+problemName+"预测文件归一化结束--------------------");
     }
 }
