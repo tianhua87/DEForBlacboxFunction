@@ -1,6 +1,7 @@
 package algorithm;
 
 import problem.BlackBoxProblem;
+import problem.SVMProblem;
 import random.DERandom;
 import strategy.DEStrategy;
 import strategy.DEStrategyConst;
@@ -166,6 +167,17 @@ public class DE {
             System.out.print(best[i]+" ");
         System.out.println();
         System.out.println(mincost);
+        //如果是svm预测的结果，计算其真实结果
+        if (blackBoxProblem instanceof SVMProblem) {
+            String problemName = ((SVMProblem)blackBoxProblem).getPROBLEM_NMAE();
+            try {
+                BlackBoxProblem bbProblem = (BlackBoxProblem) Class.forName("problem."+problemName).newInstance();
+                double realResult = bbProblem.evaluate(best,dim);
+                System.out.println("真实结果：" + realResult);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return mincost;
     }
 
