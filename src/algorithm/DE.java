@@ -68,7 +68,7 @@ public class DE {
     public void init(){
         initStrategy();
         initializer.init(p1,lowLimit,highLimit,NP,F,Cr,dim);
-
+        dim = blackBoxProblem.dim;
         for(int i = 0;i < NP;i++)
             cost[i]= blackBoxProblem .evaluate(p1[i],dim);
         mincost   = cost[0];
