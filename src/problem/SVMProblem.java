@@ -22,6 +22,10 @@ public class SVMProblem extends BlackBoxProblem {
         setBoundary();
     }
 
+    public String getPROBLEM_NMAE(){
+        return PROBLEM_NMAE;
+    }
+
     @Override
     public double evaluate(double[] X, int dim) {
         generatePredictFile(X,dim);  //将X整理成符合svm的格式写入预测文件中
