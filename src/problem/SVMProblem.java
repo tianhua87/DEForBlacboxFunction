@@ -30,7 +30,6 @@ public class SVMProblem extends BlackBoxProblem {
         double res = readResult();
         //System.out.println(res);
         res =(res-lower)*(max-min)/(upper-lower)  + min; //对结果进行反归一化
-        System.out.println("实际结果:"+res);
         return res;
     }
 
