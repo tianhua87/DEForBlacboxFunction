@@ -20,6 +20,19 @@ public class ModelGenerator {
         }
     }
 
+    public void generateModelWithoutScale(String problemName){
+        String trainFilePath = "svmfile/train/"+problemName+"_train";
+        String modelFilrPath = "svmfile/model/"+problemName+"_model";
+        //System.out.println(parameter);
+        String args = "-s 3 -t 2 "+trainFilePath+" "+modelFilrPath;
+        try {
+            svm_train.main(args.split(" "));
+            System.out.println("--------------------"+problemName+"模型生成结束--------------------");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String readParameters(String problemName){
         try {
             FileInputStream fis =new FileInputStream("svmfile/parameters/"+problemName+"_para_reg");

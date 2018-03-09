@@ -19,7 +19,7 @@ public class SVMProblem extends BlackBoxProblem {
     public SVMProblem(double lowLimit, double highLimit, String problemName) {
         super(lowLimit, highLimit);
         this.PROBLEM_NMAE = problemName;
-        setBoundary();
+        //setBoundary();
     }
 
     public String getPROBLEM_NMAE(){
@@ -29,13 +29,15 @@ public class SVMProblem extends BlackBoxProblem {
     @Override
     public double evaluate(double[] X, int dim) {
         generatePredictFile(X,dim);  //将X整理成符合svm的格式写入预测文件中
-        sfg.predictFileScale(PROBLEM_NMAE); //对预测文件进行归一化
+        //sfg.predictFileScale(PROBLEM_NMAE); //对预测文件进行归一化
         predictor.predict(PROBLEM_NMAE); //预测结果，结果保存在文件中
         double res = readResult();
         //System.out.println(res);
-        res =(res-lower)*(max-min)/(upper-lower)  + min; //对结果进行反归一化
+        //res =(res-lower)*(max-min)/(upper-lower)  + min; //对结果进行反归一化
         return res;
     }
+
+
 
     void generatePredictFile(double[] X, int dim){
         String predictPath = "svmfile/predict/"+PROBLEM_NMAE+"_predict";

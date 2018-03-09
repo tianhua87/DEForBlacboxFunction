@@ -6,7 +6,13 @@ public class ProblemConst {
             "Ackley",
             "Ackley_SVM",
             "Beale",
-            "Beale_SVM"
+            "Beale_SVM",
+            "Bohachevsky1",
+            "Bohachevsky1_SVM",
+            "Branin",
+            "Branin_SVM",
+            "Rastrigin",
+            "Rastrigin_SVM"
     };
 
 }
