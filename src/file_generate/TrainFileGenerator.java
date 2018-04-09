@@ -10,7 +10,7 @@ import java.io.OutputStreamWriter;
 
 public class TrainFileGenerator {
 
-    final int COUNT = 10000;
+    public static int COUNT = 10000;
     DERandom deRandom = new DERandom();
 //    public void trainFileGenerate(String problemName){
 //        try {
@@ -84,4 +84,54 @@ public class TrainFileGenerator {
             x[i] = deRandom.nextDouble(blackBoxProblem.lowLimit,blackBoxProblem.highLimit);
         }
     }
+
+    public void trainFileGenerate(String problemName,boolean campared){
+        try {
+            Class C = Class.forName("problem."+problemName);
+            BlackBoxProblem blackBoxProblem = (BlackBoxProblem) C.newInstance();
+            FileOutputStream fos = new FileOutputStream("svmfile/train/"+problemName+"_train");
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            StringBuilder line = new StringBuilder();
+
+            int dim = blackBoxProblem.dim;
+            double p[][] = new double[COUNT][dim];
+            double q[][] = new double[COUNT][dim];
+            double xmin[] = new double[dim+1];
+            double xmax[] = new double[dim+1];
+            for(int i = 0; i <= dim; i++) {
+                xmin[i] = blackBoxProblem.lowLimit;
+                xmax[i] = blackBoxProblem.highLimit;
+            }
+            NumberUtil.latin_hyp(p,COUNT,dim,xmin,xmax);
+            NumberUtil.latin_hyp(q,COUNT,dim,xmin,xmax);
+            double res1,res2;
+            for (int i = 0; i < COUNT; i++){
+
+                res1 = blackBoxProblem.evaluate(p[i],dim); //评价个体
+                res2 = blackBoxProblem.evaluate(q[i],dim); //评价个体
+                if(res1 < res2)
+                    line.append(-1);
+                else
+                    line.append(1);
+                int j;
+                for (j = 0 ; j < dim; j++){
+                    line.append(" ").append(j+1).append(":").append(p[i][j]);
+                }
+                for (; j < 2*dim; j++){
+                    line.append(" ").append(j+1).append(":").append(q[i][j-dim]);
+                }
+                line.append("\r\n");
+                bw.write(line.toString());
+                bw.flush();//重要，重要，重要
+                line.delete(0,line.length());
+            }
+            if (bw != null)bw.close();
+            if(fos != null)fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println("--------------------"+problemName+"训练文件生成结束--------------------");
+    }
+
+
 }

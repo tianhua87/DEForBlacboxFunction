@@ -38,10 +38,9 @@ public class SVMProblem extends BlackBoxProblem {
     }
 
 
-
     void generatePredictFile(double[] X, int dim){
         String predictPath = "svmfile/predict/"+PROBLEM_NMAE+"_predict";
-        String vector = "666";
+        String vector = "1";
         for (int i=0;i<dim;i++){
             vector+=" "+(i+1)+":"+X[i];
         }

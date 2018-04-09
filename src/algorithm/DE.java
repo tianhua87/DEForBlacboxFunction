@@ -1,10 +1,13 @@
 package algorithm;
 
+import file_generate.TrainFileGenerator;
 import problem.BlackBoxProblem;
 import problem.SVMProblem;
 import random.DERandom;
 import strategy.DEStrategy;
 import strategy.DEStrategyConst;
+
+import java.io.*;
 
 public class DE {
 
@@ -22,7 +25,7 @@ public class DE {
     public DERandom deRandom;
 
     public DEStrategy Strategem[];
-    public int current_strategy = 0;
+    public int current_strategy = 1;
 
     //如果 MAX_COUNTER 次后当前最优解依然没有改变 ，则终止进化
     private int counter = 0;
@@ -73,6 +76,11 @@ public class DE {
         for(int i = 0;i < NP;i++) {
             //cost[i] = blackBoxProblem.evaluate(p1[i], dim);
             cost[i] = blackBoxProblem.evaluate(p1[i], dim);
+//            System.out.print(cost[i]+" ");
+//            for (int j =0 ;j<dim ;j++) {
+//                System.out.print(p1[i][j]+" ");
+//            }
+//            System.out.println();
         }
         mincost   = cost[0];
         min_index = 0;
@@ -83,7 +91,7 @@ public class DE {
                 min_index = i;
             }
         }
-        System.out.println(mincost+" "+min_index);
+        //System.out.println(mincost+" "+min_index);
         assign (best, p1[min_index]);
         assign (genbest, best);
         g0 = p1;   // generation t
@@ -133,6 +141,11 @@ public class DE {
                 }
 
                 Strategem[current_strategy].apply (F, Cr, dim, trial, genbest, rvec);
+                for(int k =0;k<dim;k++){
+                    if(trial[k]<blackBoxProblem.lowLimit || trial[k]>blackBoxProblem.highLimit){
+                        trial[k] = deRandom.nextDouble(blackBoxProblem.lowLimit,blackBoxProblem.highLimit);
+                    }
+                }
 
                 double testcost = blackBoxProblem.evaluate (trial, dim);
                 //System.out.println(DEStrategyConst.DEStrategyName[current_strategy]+" "+testcost);
@@ -147,7 +160,25 @@ public class DE {
                 } else {
                     assign (g1[i], g0[i]);
                 }
+
+            /*
+            double testcost = blackBoxProblem.evaluate (concat(trial,dim,g0[i],dim), 2*dim);
+            //System.out.println(DEStrategyConst.DEStrategyName[current_strategy]+" "+testcost);
+            if (testcost == -1) {
+                assign (g1[i], trial);
+                cost[i] = testcost;
+                if (blackBoxProblem.evaluate (concat(trial,dim,best,dim), 2*dim) == -1) {
+                    mincost = testcost;
+                    assign (best, trial);
+                    min_index = i;
+                    //System.out.println(best[0]+"++++++++++++++++");
+                }
+            } else {
+                assign (g1[i], g0[i]);
             }
+            */
+
+        }
             if (lastMincost != mincost) {
                 counter = 0;
                 lastMincost = mincost;
@@ -155,14 +186,18 @@ public class DE {
                 counter++;
             }
 
-            System.out.println(mincost);
+
+            System.out.print(mincost+"   ");
+            for (int i = 0 ;i < dim;i++)
+                System.out.print(best[i]+" ");
+            System.out.println();
 
             assign (genbest, best);
 
             double gx[][] = g0;
             g0 = g1;
             g1 = gx;
-            System.out.println("代数：" + generation);
+            //System.out.println("代数：" + generation);
             generation++;
         }
         for (int i = 0 ;i < dim;i++)
@@ -176,10 +211,12 @@ public class DE {
                 BlackBoxProblem bbProblem = (BlackBoxProblem) Class.forName("problem."+problemName).newInstance();
                 double realResult = bbProblem.evaluate(best,dim);
                 System.out.println("真实结果：" + realResult);
+                writeResult(problemName,best,dim,mincost,realResult);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+
         return mincost;
     }
 
@@ -192,5 +229,40 @@ public class DE {
 
     private boolean isCompleted(){
         return counter >= MAX_COUNTER;
+    }
+
+    private void writeResult(String problem, double[] best, int dim,double predictResult, double realResult){
+
+        try {
+            File file = new File("statistic/"+problem);
+            if(!file.exists())
+                file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file,true);
+            BufferedWriter br = new BufferedWriter(new OutputStreamWriter(fos));
+            StringBuilder sb = new StringBuilder();
+            sb.append(problem).append(" ");
+            sb.append(dim).append(" ");
+            sb.append(TrainFileGenerator.COUNT).append(" ");
+            for (int i=0;i<dim;i++) {
+                sb.append(best[i]).append(" ");
+            }
+            sb.append(predictResult).append(" ");
+            sb.append(realResult).append(" ");
+            sb.append("\r\n");
+            br.write(sb.toString());
+            br.flush();
+            br.close();
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    double[] concat(double[] A, int aLen,double[] B,int bLen) {
+        double[] C= new double[aLen+bLen];
+        System.arraycopy(A, 0, C, 0, aLen);
+        System.arraycopy(B, 0, C, aLen, bLen);
+        return C;
     }
 }

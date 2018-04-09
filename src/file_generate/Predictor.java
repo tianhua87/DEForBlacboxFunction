@@ -19,6 +19,7 @@ public class Predictor {
         }
     }
 
+
 //    public void predict(String problemName){
 //        String modelPath = "svmfile/model/"+problemName+"_model";
 //        String resultPath = "svmfile/result/"+problemName + "_result";
