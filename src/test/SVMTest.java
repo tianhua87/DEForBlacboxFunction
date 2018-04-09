@@ -3,9 +3,9 @@ package test;
 import file_generate.ModelGenerator;
 import file_generate.TrainFileGenerator;
 import problem.BlackBoxProblem;
+import utilities.ProblemGenerator;
 
 import java.io.*;
-import java.nio.Buffer;
 
 public class SVMTest {
 
@@ -20,7 +20,7 @@ public class SVMTest {
         //Ackley,Beale,Bohachevsky1,Branin,Rastrigin,Shekel2,Kowalik,SixHumpCamel'
         String problem = "Ackley";
         int count = 10;
-        BlackBoxProblem bbp = generateBBProblem(problem);
+        BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
         TrainFileGenerator tfg = new TrainFileGenerator();
         TrainFileGenerator.COUNT = count;
         tfg.trainFileGenerate(problem);
@@ -38,7 +38,7 @@ public class SVMTest {
 //            System.out.println();
 //        }
 
-        BlackBoxProblem bbpSVM = generateSVMProblem(problem);
+        BlackBoxProblem bbpSVM = ProblemGenerator.generateSVMProblem(problem);
 
         double[] t = new double[bbp.dim];
         double sum = 0;
@@ -54,25 +54,6 @@ public class SVMTest {
 
     }
 
-    public BlackBoxProblem generateBBProblem(String problem){
-        BlackBoxProblem bbProblem = null;
-        try {
-            bbProblem = (BlackBoxProblem) Class.forName("problem."+problem).newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return bbProblem;
-    }
-
-    public BlackBoxProblem generateSVMProblem(String problem){
-        BlackBoxProblem bbProblem = null;
-        try {
-            bbProblem = (BlackBoxProblem) Class.forName("problem."+problem + "_SVM").newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return bbProblem;
-    }
 
 
     public double[][] getTrainSets(String problem,int count,int dim) {

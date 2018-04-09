@@ -4,6 +4,7 @@ import file_generate.ModelGenerator;
 import file_generate.TrainFileGenerator;
 import problem.BlackBoxProblem;
 import random.DERandom;
+import utilities.ProblemGenerator;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,20 +16,34 @@ public class DEOptimizer {
 
     public void optimizeModel(String problem){
 
-        BlackBoxProblem blackBoxProblem = generateSVMProblem(problem);
+        //初始数据
+        int NP = 50;
+        double Cr = 0.2;
+        double F = 0.3;
+
+        BlackBoxProblem blackBoxProblem = ProblemGenerator.generateSVMProblem(problem);
         int dim = blackBoxProblem.dim;
         TrainFileGenerator.COUNT = dim*11+1;
+
+        //生成初始种群
+        double[][] p = new double[NP][dim];
+        double[] cost = new double[NP];
+        DEInitializer deInitializer = new EvenlyDEInitializer();
+        deInitializer.init(p,blackBoxProblem.lowLimit,blackBoxProblem.highLimit,NP,F,Cr,dim);
+        caculateCost(problem,p,cost);
+
+
         TrainFileGenerator tfg = new TrainFileGenerator();
         tfg.trainFileGenerate(problem);
         //tfg.trainFileGenerate(problem,true);
         ModelGenerator mg = new ModelGenerator();
         mg.generateModelWithoutScale(problem);
         //mg.generateModel(problem,true);
-        DEInitializer deInitializer = new EvenlyDEInitializer();
-        DE de = new DE(10, 50, 0.3, 0.5,  deInitializer, blackBoxProblem);
+
+        DE de = new DE(dim, NP, F, Cr,  deInitializer, blackBoxProblem);
         double minicost = 0;
         int counter = 0;
-        BlackBoxProblem bbp = generateBBProblem(problem);
+        BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
         while (counter++<MAX_COUNT) {
             de.optimize();
             minicost = bbp.evaluate(de.best,dim);
@@ -39,7 +54,7 @@ public class DEOptimizer {
             //replaceOldestTrainFile(problem, minicost,de.best,dim);
             updateModel(problem);
             //updateModel(problem,true);
-            de = new DE(10, 50, 0.3, 0.5,  deInitializer, blackBoxProblem);
+            de = new DE(dim, NP, F, Cr,  deInitializer, blackBoxProblem);
 
             System.out.println("使用真实评价的次数： "+(counter+dim*11+1));
         }
@@ -52,24 +67,13 @@ public class DEOptimizer {
         System.out.println();
     }
 
-    public BlackBoxProblem generateSVMProblem(String problem){
-        BlackBoxProblem bbProblem = null;
-        try {
-            bbProblem = (BlackBoxProblem) Class.forName("problem."+problem + "_SVM").newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return bbProblem;
-    }
 
-    public BlackBoxProblem generateBBProblem(String problem){
-        BlackBoxProblem bbProblem = null;
-        try {
-            bbProblem = (BlackBoxProblem) Class.forName("problem."+problem).newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
+    //计算每个个体的适应度
+    public void caculateCost(String problem,double[][] p,double[] cost) {
+        BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
+        for(int i=0;i<p.length;i++) {
+            cost[i]=bbp.evaluate(p[i],bbp.dim);
         }
-        return bbProblem;
     }
 
     public void updateModel(String problem) {
@@ -249,7 +253,7 @@ public class DEOptimizer {
 //            }
 
             FileWriter fw = new FileWriter(filePath,true);
-            BlackBoxProblem bbp = generateBBProblem(problem);
+            BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
             double x[]=new double[bbp.dim];
             DERandom deRandom = new DERandom();
             for(int i=0;i<dim;i++){

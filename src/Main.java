@@ -53,7 +53,7 @@ public class Main {
         //Ackley,Beale,Bohachevsky1,Branin,Rastrigin,Shekel2,Kowalik,SixHumpCamel
         String problemName = "Kowalik";
         TrainFileGenerator tfg = new TrainFileGenerator();
-        tfg.trainFileGenerate(problemName,true);
+        //tfg.trainFileGenerate(problemName,true);
         ModelGenerator mg = new ModelGenerator();
         mg.generateModel(problemName,true);
         BlackBoxProblem bbProblem = null;
