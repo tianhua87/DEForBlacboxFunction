@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         //Ackley,Beale,Bohachevsky1,Branin,Rastrigin,Shekel2,Kowalik,SixHumpCamel
 
-        String problemName = "Bohachevsky1";
+        String problemName = "Ackley";
         //testSVMProblem(problemName);
 
         //testDEProblem(problemName);

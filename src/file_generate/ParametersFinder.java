@@ -5,7 +5,10 @@ import java.io.*;
 public class ParametersFinder {
 
     public static final String regScriptFile = "gridregression.py";
+    public static final String binaryScriptFile = "grid.py";
 
+
+    //寻找回归的最优参数
     public void findRegTrainParameters(String problemName){
         File scaleFile = new File("svmfile/scale/"+problemName+"_scale");
         String scaleFileAbsoluPath = scaleFile.getAbsolutePath();
@@ -24,6 +27,27 @@ public class ParametersFinder {
         System.out.println("--------------------"+problemName+"参数寻优生成结束--------------------");
 
     }
+
+
+    public void findBinaryTrainParameters(String problemName){
+        File trainFile = new File("svmfile/train/"+problemName+"_train");
+        String trainFileAbsoluPath = trainFile.getAbsolutePath();
+        File scriptFile = new File("svmfile/script/"+binaryScriptFile);
+        String scriptFileAbsoluPath = scriptFile.getAbsolutePath();
+
+        String parameters = execPythonScript(scriptFileAbsoluPath,trainFileAbsoluPath);
+        if(parameters.length()!=0){
+
+            String []p = parameters.split(" ");
+            String ps = "-c "+p[0]+" -g "+p[1]+" -r "+p[2];
+
+            String parameterFilePath = "svmfile/parameters/"+problemName+"_para_binary";
+            writeFile(parameterFilePath,ps);
+        }
+        System.out.println("--------------------"+problemName+"参数寻优生成结束--------------------");
+
+    }
+
 
     public void writeFile(String filePath,String str){
         try {

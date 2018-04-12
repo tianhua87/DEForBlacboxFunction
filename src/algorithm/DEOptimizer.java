@@ -5,6 +5,7 @@ import file_generate.TrainFileGenerator;
 import problem.BlackBoxProblem;
 import random.DERandom;
 import utilities.ProblemGenerator;
+import utilities.SortUtil;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -14,31 +15,37 @@ public class DEOptimizer {
     public static final int MAX_COUNT = 200;
     public static int oldestIndex = 0;
 
+    //初始数据
+    int initPopSize ;
+    int NP = 50;
+    double Cr = 0.5;
+    double F = 0.8;
+    double[][] p ;
+    double[] cost ;
+
     public void optimizeModel(String problem){
 
-        //初始数据
-        int NP = 50;
-        double Cr = 0.2;
-        double F = 0.3;
 
         BlackBoxProblem blackBoxProblem = ProblemGenerator.generateSVMProblem(problem);
         int dim = blackBoxProblem.dim;
         TrainFileGenerator.COUNT = dim*11+1;
 
         //生成初始种群
-        double[][] p = new double[NP][dim];
-        double[] cost = new double[NP];
-        DEInitializer deInitializer = new EvenlyDEInitializer();
-        deInitializer.init(p,blackBoxProblem.lowLimit,blackBoxProblem.highLimit,NP,F,Cr,dim);
+        initPopSize = dim*11+1;
+        p = new double[initPopSize][dim];
+        cost = new double[initPopSize];
+        //DEInitializer deInitializer = new EvenlyDEInitializer();
+        DEInitializer deInitializer = new CommonDEInitializer();
+        deInitializer.init(p,blackBoxProblem.lowLimit,blackBoxProblem.highLimit,initPopSize,F,Cr,dim);
         caculateCost(problem,p,cost);
 
 
         TrainFileGenerator tfg = new TrainFileGenerator();
-        tfg.trainFileGenerate(problem);
-        //tfg.trainFileGenerate(problem,true);
+        //tfg.trainFileGenerate(problem);
+        tfg.trainFileGenerate(problem,p,cost,true);
         ModelGenerator mg = new ModelGenerator();
-        mg.generateModelWithoutScale(problem);
-        //mg.generateModel(problem,true);
+        //mg.generateModelWithoutScale(problem);
+        mg.generateModel(problem,true);
 
         DE de = new DE(dim, NP, F, Cr,  deInitializer, blackBoxProblem);
         double minicost = 0;
@@ -48,12 +55,13 @@ public class DEOptimizer {
             de.optimize();
             minicost = bbp.evaluate(de.best,dim);
             //addTrainFile(problem, minicost,de.best,dim);
-            replaceTrainFile(problem, minicost,de.best,dim,bbp);
+            //replaceTrainFile(problem, minicost,de.best,dim,bbp);
             //replaceMinTrainFile(problem,minicost,de.best,dim);
-            //replaceTrainFile(problem, minicost,de.best,dim,true);
+            replaceTrainFile(problem, minicost,de.best,dim,true);
             //replaceOldestTrainFile(problem, minicost,de.best,dim);
-            updateModel(problem);
+            //updateModel(problem);
             //updateModel(problem,true);
+            updateModelWithBestPara(problem,true);
             de = new DE(dim, NP, F, Cr,  deInitializer, blackBoxProblem);
 
             System.out.println("使用真实评价的次数： "+(counter+dim*11+1));
@@ -76,13 +84,21 @@ public class DEOptimizer {
         }
     }
 
+    //更新回归模型，使用默认参数
     public void updateModel(String problem) {
         ModelGenerator mg = new ModelGenerator();
         mg.generateModelWithoutScale(problem);
     }
+    //更新二分类模型，使用默认参数
     public void updateModel(String problem,boolean cc) {
         ModelGenerator mg = new ModelGenerator();
         mg.generateModel(problem,true);
+    }
+
+    //更新模型，使用最优参数,二分类模型
+    public void updateModelWithBestPara(String problem,boolean cc) {
+        ModelGenerator mg = new ModelGenerator();
+        mg.generateModelWithBestPara(problem,true);
     }
 
     public void addTrainFile(String problem,double minicost,double best[], int dim) {
@@ -229,63 +245,16 @@ public class DEOptimizer {
     public void replaceTrainFile(String problem,double minicost,double best[], int dim, boolean cc) {
 
         String filePath = "svmfile/train/"+problem+"_train";
-        try {
-//            FileInputStream fis = new FileInputStream(filePath);
-//            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-//            ArrayList<String> list = new ArrayList<>();
-//            String line;
-//            while((line = br.readLine())!=null) {
-//                list.add(line);
-//            }
+        BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
+        double realCost = bbp.evaluate(best,dim);
 
-
-//            try {
-//                FileWriter fw = new FileWriter(filePath);
-//
-//                for(String str:list){
-//                    fw.write(str);
-//                    fw.write("\r\n");
-//                }
-//                fw.flush();
-//                fw.close();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-
-            FileWriter fw = new FileWriter(filePath,true);
-            BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
-            double x[]=new double[bbp.dim];
-            DERandom deRandom = new DERandom();
-            for(int i=0;i<dim;i++){
-                x[i] = deRandom.nextDouble(bbp.lowLimit,bbp.highLimit);
-            }
-            double res1 = bbp.evaluate(best,bbp.dim);
-            double res2 = bbp.evaluate(x,bbp.dim);
-            StringBuilder sb = new StringBuilder();
-            if(res1 < res2){
-                sb.append("-1 ");
-            }
-            else {
-                sb.append("1 ");
-            }
-            for(int i=0;i<bbp.dim;i++){
-                sb.append(i+1).append(":").append(best[i]).append(" ");
-            }
-            for(int i=0;i<bbp.dim;i++){
-                sb.append(i+1+bbp.dim).append(":").append(x[i]).append(" ");
-            }
-            sb.append("\r\n");
-
-            fw.write(sb.toString());
-            fw.flush();
-            fw.close();
-
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(realCost < cost[initPopSize-1]) {
+            cost[initPopSize-1]=realCost;
+            p[initPopSize-1]=best;
         }
-
+        //SortUtil.spaceSort(p,cost,initPopSize);
+        TrainFileGenerator tfg = new TrainFileGenerator();
+        tfg.trainFileGenerate(problem,p,cost,true);
     }
 
 

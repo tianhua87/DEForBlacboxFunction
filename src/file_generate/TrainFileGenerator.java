@@ -131,8 +131,9 @@ public class TrainFileGenerator {
                         line.append(k+1).append(':').append(p[i][k]).append(' ');
                     }
                     for(int k=0;k<dim;k++){
-                        line.append(k+1+dim).append(':').append(p[j][k]).append("\r\n");
+                        line.append(k+1+dim).append(':').append(p[j][k]).append(" ");
                     }
+                    line.append("\r\n");
                     bw.write(line.toString());
                     bw.flush();
                     line.delete(0,line.length());
@@ -143,8 +144,9 @@ public class TrainFileGenerator {
                         line.append(k+1).append(':').append(p[i][k]).append(' ');
                     }
                     for(int k=0;k<dim;k++){
-                        line.append(k+1+dim).append(':').append(p[j][k]).append("\r\n");
+                        line.append(k+1+dim).append(':').append(p[j][k]).append(" ");
                     }
+                    line.append("\r\n");
                     bw.write(line.toString());
                     bw.flush();
                     line.delete(0,line.length());

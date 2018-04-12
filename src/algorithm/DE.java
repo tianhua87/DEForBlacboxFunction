@@ -6,8 +6,11 @@ import problem.SVMProblem;
 import random.DERandom;
 import strategy.DEStrategy;
 import strategy.DEStrategyConst;
+import utilities.ProblemGenerator;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class DE {
 
@@ -114,6 +117,8 @@ public class DE {
 
     public double optimize () {
 
+        ArrayList<String> evolution = new ArrayList<>();
+
         while (!isCompleted()) {
             for (int i = 0;  i < NP;  i++) {
                 assign (trial, g0[i]);
@@ -147,6 +152,7 @@ public class DE {
                     }
                 }
 
+                /*
                 double testcost = blackBoxProblem.evaluate (trial, dim);
                 //System.out.println(DEStrategyConst.DEStrategyName[current_strategy]+" "+testcost);
                 if (testcost <= cost[i]) {
@@ -160,23 +166,31 @@ public class DE {
                 } else {
                     assign (g1[i], g0[i]);
                 }
+                */
 
-            /*
             double testcost = blackBoxProblem.evaluate (concat(trial,dim,g0[i],dim), 2*dim);
             //System.out.println(DEStrategyConst.DEStrategyName[current_strategy]+" "+testcost);
             if (testcost == -1) {
                 assign (g1[i], trial);
                 cost[i] = testcost;
                 if (blackBoxProblem.evaluate (concat(trial,dim,best,dim), 2*dim) == -1) {
+
+                    for (int l = 0 ;l < dim;l++)
+                        System.out.print(best[l]+" ");
+
                     mincost = testcost;
                     assign (best, trial);
                     min_index = i;
                     //System.out.println(best[0]+"++++++++++++++++");
+                    System.out.print("+++"+mincost+"   ");
+                    for (int l = 0 ;l < dim;l++)
+                        System.out.print(best[l]+" ");
+                    System.out.println();
                 }
             } else {
                 assign (g1[i], g0[i]);
             }
-            */
+
 
         }
             if (lastMincost != mincost) {
@@ -187,10 +201,10 @@ public class DE {
             }
 
 
-            System.out.print(mincost+"   ");
-            for (int i = 0 ;i < dim;i++)
-                System.out.print(best[i]+" ");
-            System.out.println();
+//            System.out.print(mincost+"   ");
+//            for (int i = 0 ;i < dim;i++)
+//                System.out.print(best[i]+" ");
+//            System.out.println();
 
             assign (genbest, best);
 
@@ -199,6 +213,8 @@ public class DE {
             g1 = gx;
             //System.out.println("代数：" + generation);
             generation++;
+             BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(((SVMProblem)(blackBoxProblem)).getPROBLEM_NMAE());
+            evolution.add(bbp.evaluate(best,dim)+"");
         }
         for (int i = 0 ;i < dim;i++)
             System.out.print(best[i]+" ");
@@ -217,6 +233,8 @@ public class DE {
             }
         }
 
+        saveEvolutionProcess(((SVMProblem)blackBoxProblem).getPROBLEM_NMAE(),evolution);
+
         return mincost;
     }
 
@@ -224,6 +242,23 @@ public class DE {
         int i;
         for (i=0; i<dim; i++) {
             to[i] = from[i];
+        }
+    }
+
+    private void saveEvolutionProcess(String problem,ArrayList<String> evolution) {
+        String filePath = "svmfile/evolution/"+problem;
+        File file =new File(filePath);
+        try {
+            if(!file.exists())
+                file.createNewFile();
+            FileWriter fw = new FileWriter(file);
+            for(String s:evolution){
+                fw.write(s+"\r\n");
+            }
+            fw.flush();
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -263,6 +298,7 @@ public class DE {
         double[] C= new double[aLen+bLen];
         System.arraycopy(A, 0, C, 0, aLen);
         System.arraycopy(B, 0, C, aLen, bLen);
+        //System.out.println("--------------------------------"+Arrays.toString(C)+"---------------------------------------");
         return C;
     }
 }
