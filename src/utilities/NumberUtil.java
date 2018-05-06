@@ -48,4 +48,12 @@ public class NumberUtil {
         }
     }
 
+    public static double[] concat(double[] A, int aLen,double[] B,int bLen) {
+        double[] C= new double[aLen+bLen];
+        System.arraycopy(A, 0, C, 0, aLen);
+        System.arraycopy(B, 0, C, aLen, bLen);
+        //System.out.println("--------------------------------"+Arrays.toString(C)+"---------------------------------------");
+        return C;
+    }
+
 }

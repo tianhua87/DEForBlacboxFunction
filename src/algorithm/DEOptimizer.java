@@ -1,6 +1,7 @@
 package algorithm;
 
 import file_generate.ModelGenerator;
+import file_generate.ParametersFinder;
 import file_generate.TrainFileGenerator;
 import problem.BlackBoxProblem;
 import random.DERandom;
@@ -9,11 +10,17 @@ import utilities.SortUtil;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class DEOptimizer {
 
-    public static final int MAX_COUNT = 200;
+
+    public static final int MAX_COUNT = 100;
     public static int oldestIndex = 0;
+    public static final String UPDATE_MODEL_ADD = "add";
+    public static final String UPDATE_MODEL_OLDEST = "replaceOldest";
+    public static final String UPDATE_MODEL_WORST = "replaceWorst";
+    public static String updateModel = UPDATE_MODEL_WORST;
 
     //初始数据
     int initPopSize ;
@@ -22,6 +29,8 @@ public class DEOptimizer {
     double F = 0.8;
     double[][] p ;
     double[] cost ;
+    double minCost = Double.MAX_VALUE;
+    double globalBest;
 
     public void optimizeModel(String problem){
 
@@ -34,36 +43,49 @@ public class DEOptimizer {
         initPopSize = dim*11+1;
         p = new double[initPopSize][dim];
         cost = new double[initPopSize];
-        //DEInitializer deInitializer = new EvenlyDEInitializer();
         DEInitializer deInitializer = new CommonDEInitializer();
         deInitializer.init(p,blackBoxProblem.lowLimit,blackBoxProblem.highLimit,initPopSize,F,Cr,dim);
         caculateCost(problem,p,cost);
 
-
         TrainFileGenerator tfg = new TrainFileGenerator();
-        //tfg.trainFileGenerate(problem);
-        tfg.trainFileGenerate(problem,p,cost,true);
         ModelGenerator mg = new ModelGenerator();
-        //mg.generateModelWithoutScale(problem);
-        mg.generateModel(problem,true);
 
-        DE de = new DE(dim, NP, F, Cr,  deInitializer, blackBoxProblem);
-        double minicost = 0;
+        if(DE.isReg==false) {
+            tfg.trainFileGenerate(problem, p, cost, true);
+            mg.generateModelWithBestPara(problem, true);
+        }else {
+            tfg.trainFileGenerate(problem);
+            mg.generateModelWithBestPara(problem);
+        }
+
+        double minicost = Double.MAX_VALUE;
         int counter = 0;
         BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
+        DE de = null;
         while (counter++<MAX_COUNT) {
-            de.optimize();
-            minicost = bbp.evaluate(de.best,dim);
-            //addTrainFile(problem, minicost,de.best,dim);
-            //replaceTrainFile(problem, minicost,de.best,dim,bbp);
-            //replaceMinTrainFile(problem,minicost,de.best,dim);
-            replaceTrainFile(problem, minicost,de.best,dim,true);
-            //replaceOldestTrainFile(problem, minicost,de.best,dim);
-            //updateModel(problem);
-            //updateModel(problem,true);
-            updateModelWithBestPara(problem,true);
+            //开始差分进化算法，求解当前最优解
             de = new DE(dim, NP, F, Cr,  deInitializer, blackBoxProblem);
+            long start = Calendar.getInstance().getTimeInMillis();
+            de.optimize();
+            long end = Calendar.getInstance().getTimeInMillis();
+            saveDETime(problem,end-start,counter+dim*11+1);
+            //将当前最优解做真实评价，添加到训练文件中
+            if(DE.isReg == false) {
+                if(updateModel.equals(UPDATE_MODEL_ADD)) {
+                    replaceTrainFile(problem, minicost, de.best, dim, true);
+                }else if(updateModel.equals(UPDATE_MODEL_WORST)) {
+                    replaceWorstTrainFile(problem, minicost, de.best, dim, true);
+                }
+                //使用最优参数，训练模型
+                updateModelWithBestPara(problem, true);
+            }else {
+                addTrainFile(problem,de.best,dim);
+                updateModelWithBestPara(problem);
+            }
 
+            globalBest = cost[0];
+            System.err.println("当前最优解: "+globalBest);
+            writeBestSolution(problem,bbp.evaluate(de.best,dim),globalBest,counter+dim*11+1);
             System.out.println("使用真实评价的次数： "+(counter+dim*11+1));
         }
 
@@ -84,6 +106,51 @@ public class DEOptimizer {
         }
     }
 
+    public void saveDETime(String problem,long time,int count) {
+        File f = new File("svmfile/time/"+problem+"_de");
+
+        try {
+            if (!f.exists())
+                f.createNewFile();
+            FileWriter fw=new FileWriter(f,true);
+            fw.write(count+" "+time+" "+"\r\n");
+            fw.flush();
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveFindParaTime(String problem,long time,int count) {
+        File f = new File("svmfile/time/"+problem+"_para");
+
+        try {
+            if (!f.exists())
+                f.createNewFile();
+            FileWriter fw=new FileWriter(f,true);
+            fw.write(count+" "+time+" "+"\r\n");
+            fw.flush();
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeBestSolution(String problem,double deBest,double globalBest,int count) {
+        File f = new File("svmfile/best/"+problem);
+
+        try {
+            if (!f.exists())
+                f.createNewFile();
+            FileWriter fw=new FileWriter(f,true);
+            fw.write(count+" "+deBest+" "+globalBest+"\r\n");
+            fw.flush();
+            fw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     //更新回归模型，使用默认参数
     public void updateModel(String problem) {
         ModelGenerator mg = new ModelGenerator();
@@ -100,15 +167,21 @@ public class DEOptimizer {
         ModelGenerator mg = new ModelGenerator();
         mg.generateModelWithBestPara(problem,true);
     }
+    //更新模型，使用最优参数,回归模型
+    public void updateModelWithBestPara(String problem) {
+        ModelGenerator mg = new ModelGenerator();
+        mg.generateModelWithBestPara(problem);
+    }
 
-    public void addTrainFile(String problem,double minicost,double best[], int dim) {
+    //回归模型，直接将DE优化出来的最优解加入到训练集中
+    public void addTrainFile(String problem,double best[], int dim) {
 
         String filePath = "svmfile/train/"+problem+"_train";
         try {
             FileWriter fw = new FileWriter(filePath,true);
-
+            BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
             StringBuilder sb = new StringBuilder();
-            sb.append(minicost).append(" ");
+            sb.append(bbp.evaluate(best,dim)).append(" ");
             for (int i = 0; i < dim; i++)
                 sb.append(i + 1).append(":").append(best[i]).append(" ");
             sb.append("\r\n");
@@ -118,186 +191,47 @@ public class DEOptimizer {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-    public void replaceTrainFile(String problem,double minicost,double best[], int dim, BlackBoxProblem bbp) {
-
-        int counter = 0;
-        DERandom deRandom = new DERandom();
-        double Cr = 0.6;
-        double F = 0.5;
-        double x[] = new double[dim];
-        for(int i =0 ;i<dim ;i++) {
-
-            x[i] = best[i] * (deRandom.nextDouble(1-Cr,1+Cr));
-            System.out.println("++++++++++++++++++++++++++++++++++++++++++++");
-
-        }
-        double xcost = bbp.evaluate(x,dim);
-        if(xcost < minicost) {
-            for(int i=0;i<dim;i++){
-                best[i] = x[i];
-            }
-            minicost = xcost;
-        }
-
-        minicost = bbp.evaluate(best,dim);
-
-        String filePath = "svmfile/train/"+problem+"_train";
-        try {
-            FileInputStream fis = new FileInputStream(filePath);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-            ArrayList<String> list = new ArrayList<>();
-            String line;
-            while((line = br.readLine())!=null){
-                list.add(line);
-            }
-            int maxIndex = -1;
-            //double maxValue = Double.parseDouble(list.get(0).split(" ")[0]);
-            double maxValue = Double.MIN_VALUE;
-            for(int i=0;i<list.size();i++){
-                double v = Double.parseDouble(list.get(i).split(" ")[0]);
-                if(v>maxValue){
-                    maxValue = v;
-                    maxIndex = i;
-                }
-            }
-            if (maxValue > minicost ) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(minicost).append(" ");
-                for (int i = 0; i < dim; i++)
-                    sb.append(i + 1).append(":").append(best[i]).append(" ");
-                list.remove(maxIndex);
-                list.add(maxIndex, sb.toString());
-            }
-
-            try {
-                FileWriter fw = new FileWriter(filePath);
-
-                for(String str:list){
-                    fw.write(str);
-                    fw.write("\r\n");
-                }
-                fw.flush();
-                fw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    public void replaceMinTrainFile(String problem,double minicost,double best[], int dim) {
-
-        String filePath = "svmfile/train/"+problem+"_train";
-        try {
-            FileInputStream fis = new FileInputStream(filePath);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-            ArrayList<String> list = new ArrayList<>();
-            String line;
-            while((line = br.readLine())!=null){
-                list.add(line);
-            }
-            int minIndex = -1;
-            //double maxValue = Double.parseDouble(list.get(0).split(" ")[0]);
-            double minValue = Double.MAX_VALUE;
-            for(int i=0;i<list.size();i++){
-                double v = Double.parseDouble(list.get(i).split(" ")[0]);
-                if(v<minValue){
-                    minValue = v;
-                    minIndex = i;
-                }
-            }
-            if (minValue > minicost ) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(minicost).append(" ");
-                for (int i = 0; i < dim; i++)
-                    sb.append(i + 1).append(":").append(best[i]).append(" ");
-                list.remove(minIndex);
-                list.add(minIndex, sb.toString());
-            }
-
-            try {
-                FileWriter fw = new FileWriter(filePath);
-
-                for(String str:list){
-                    fw.write(str);
-                    fw.write("\r\n");
-                }
-                fw.flush();
-                fw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
+    //分类模型，直接将DE优化出来的最优解加入到训练集中
     public void replaceTrainFile(String problem,double minicost,double best[], int dim, boolean cc) {
-
         String filePath = "svmfile/train/"+problem+"_train";
         BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
         double realCost = bbp.evaluate(best,dim);
 
-        if(realCost < cost[initPopSize-1]) {
-            cost[initPopSize-1]=realCost;
-            p[initPopSize-1]=best;
+        initPopSize++;
+        double[][] pp = new double[initPopSize][dim];
+        double []ccost = new double[initPopSize];
+        for(int ll=0;ll<initPopSize-1;ll++) {
+            pp[ll]=p[ll];
+            ccost[ll]=cost[ll];
         }
+        pp[initPopSize-1]=best;
+        ccost[initPopSize-1]=realCost;
+        p=pp;
+        cost=ccost;
+//        if(realCost < cost[initPopSize-1]) {
+//            cost[initPopSize-1]=realCost;
+//            p[initPopSize-1]=best;
+//        }
         //SortUtil.spaceSort(p,cost,initPopSize);
         TrainFileGenerator tfg = new TrainFileGenerator();
         tfg.trainFileGenerate(problem,p,cost,true);
     }
 
-
-
-    public void replaceOldestTrainFile(String problem,double minicost,double best[], int dim) {
-
+    //分类模型，替换最坏的解
+    public void replaceWorstTrainFile(String problem,double minicost,double best[], int dim, boolean cc) {
         String filePath = "svmfile/train/"+problem+"_train";
-        try {
-            FileInputStream fis = new FileInputStream(filePath);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-            ArrayList<String> list = new ArrayList<>();
-            String line;
-            int count = 0;
-            while((line = br.readLine())!=null) {
-                list.add(line);
-                count++;
-            }
+        BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(problem);
+        double realCost = bbp.evaluate(best,dim);
 
-            StringBuilder sb = new StringBuilder();
-            sb.append(minicost).append(" ");
-            for (int i = 0; i < dim; i++)
-                sb.append(i + 1).append(":").append(best[i]).append(" ");
-            list.remove(oldestIndex%count);
-            list.add(oldestIndex%count, sb.toString());
-            oldestIndex++;
-
-            try {
-                FileWriter fw = new FileWriter(filePath);
-
-                for(String str:list){
-                    fw.write(str);
-                    fw.write("\r\n");
-                }
-                fw.flush();
-                fw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        if(realCost < cost[initPopSize-1]) {
+            p[initPopSize-1]=best;
+            cost[initPopSize-1] = realCost;
         }
-
+        TrainFileGenerator tfg = new TrainFileGenerator();
+        tfg.trainFileGenerate(problem,p,cost,true);
     }
+
 
 }

@@ -1,6 +1,7 @@
 import algorithm.*;
 import file_generate.*;
 import problem.*;
+import test.RegAndClassfyCampared;
 
 import java.io.IOException;
 
@@ -9,7 +10,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         //Ackley,Beale,Bohachevsky1,Branin,Rastrigin,Shekel2,Kowalik,SixHumpCamel
 
-        String problemName = "Ackley";
+        String problemName = "Rosenbrock";
         //testSVMProblem(problemName);
 
         //testDEProblem(problemName);
@@ -22,19 +23,13 @@ public class Main {
 
         testUpdate();
 
+
     }
 
-    public static void statistic(){
-        //Ackley,Beale,Bohachevsky1,Branin,Rastrigin
-        for (TrainFileGenerator.COUNT=18500;TrainFileGenerator.COUNT<=50000;TrainFileGenerator.COUNT+=500){
-            String problemName = "Beale";
-            testSVMProblem(problemName);
-        }
-    }
 
     public static void testUpdate() {
         //Ackley,Beale,Bohachevsky1,Branin,Rastrigin,Shekel2,Kowalik,SixHumpCamel'
-        String problem = "Ackley";
+        String problem = "Branin";
         DEOptimizer deOptimizer = new DEOptimizer();
         deOptimizer.optimizeModel(problem);
     }
@@ -46,7 +41,6 @@ public class Main {
         BlackBoxProblem blackBoxProblem = new Beale_SVM();
         DE de = new DE(10, 50, 0.8, 0.7,  deInitializer, blackBoxProblem);
         de.optimize();
-
     }
 
     public static void testOneToOne(){

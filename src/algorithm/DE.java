@@ -14,6 +14,8 @@ import java.util.Arrays;
 
 public class DE {
 
+    public static  boolean isReg =false;
+
     public int generation  = 0;
     public double mincost  = Double.MAX_VALUE;
     public double lastMincost = Double.MAX_VALUE ;
@@ -57,6 +59,9 @@ public class DE {
 
     int    min_index   = 0;
 
+    int all = 0,right = 0;
+    BlackBoxProblem bbpT ;
+
     public void initStrategy(){
         String S[] = DEStrategyConst.DEStrategyName;
         Strategem = new DEStrategy [S.length];
@@ -76,22 +81,46 @@ public class DE {
         initStrategy();
         initializer.init(p1,lowLimit,highLimit,NP,F,Cr,dim);
         dim = blackBoxProblem.dim;
-        for(int i = 0;i < NP;i++) {
-            //cost[i] = blackBoxProblem.evaluate(p1[i], dim);
-            cost[i] = blackBoxProblem.evaluate(p1[i], dim);
-//            System.out.print(cost[i]+" ");
-//            for (int j =0 ;j<dim ;j++) {
-//                System.out.print(p1[i][j]+" ");
-//            }
-//            System.out.println();
+
+        //回归
+        if(isReg) {
+            for (int i = 0; i < NP; i++) {
+                cost[i] = blackBoxProblem.evaluate(p1[i], dim);
+            }
+            mincost = cost[0];
+            min_index = 0;
+            for (int i = 0; i < NP; i++) {
+                double x = cost[i];
+                if (x < mincost) {
+                    mincost = x;
+                    min_index = i;
+                }
+            }
         }
-        mincost   = cost[0];
-        min_index = 0;
-        for (int i=0; i<NP; i++) {
-            double x = cost[i];
-            if (x < mincost) {
-                mincost   = x;
-                min_index = i;
+
+        //二分类
+        if (!isReg) {
+            if (blackBoxProblem.evaluate(concat(p1[0], dim, p1[1], dim), 2 * dim) == -1) {
+                min_index = 0;
+                if (isBetter(p1[0], p1[1], dim)) {
+                    right++;
+                }
+            } else {
+                min_index = 1;
+                if (isBetter(p1[0], p1[1], dim) == false) {
+                    right++;
+                }
+            }
+            all++;
+
+            for (int i = 2; i < NP; i++) {
+                if (blackBoxProblem.evaluate(concat(p1[i], dim, p1[min_index], dim), 2 * dim) == -1) {
+                    min_index = i;
+                    if (isBetter(p1[i], p1[min_index], dim)) {
+                        right++;
+                    }
+                }
+                all++;
             }
         }
         //System.out.println(mincost+" "+min_index);
@@ -112,31 +141,34 @@ public class DE {
         this.initializer = initializer;
         deRandom = new DERandom();
         this.blackBoxProblem = blackBoxProblem;
+        if(blackBoxProblem instanceof SVMProblem)
+            bbpT = ProblemGenerator.generateBBProblem(((SVMProblem)blackBoxProblem).getPROBLEM_NMAE());
+        else
+            bbpT = blackBoxProblem;
         init();
+
     }
 
     public double optimize () {
 
         ArrayList<String> evolution = new ArrayList<>();
 
+
+
         while (!isCompleted()) {
             for (int i = 0;  i < NP;  i++) {
                 assign (trial, g0[i]);
+                //从种群中随机选取6个不同个体，用做变异使用
                 do rnd[0] = deRandom.nextInt (NP);
                 while (rnd[0] == i);
-
                 do rnd[1] = deRandom.nextInt (NP);
                 while ((rnd[1] == i) || (rnd[1] == rnd[0]));
-
                 do rnd[2] = deRandom.nextInt (NP);
                 while ((rnd[2] == i) || (rnd[2] == rnd[1]) || (rnd[2] == rnd[0]));
-
                 do rnd[3] = deRandom.nextInt (NP);
                 while ((rnd[3] == i) || (rnd[3] == rnd[2]) || (rnd[3] == rnd[1]) || (rnd[3] == rnd[0]));
-
                 do rnd[4] = deRandom.nextInt (NP);
                 while ((rnd[4] == i) || (rnd[4] == rnd[3]) || (rnd[4] == rnd[2]) || (rnd[4] == rnd[1]) || (rnd[4] == rnd[0]));
-
                 do rnd[5] = deRandom.nextInt (NP);
                 while ((rnd[5] == i) || (rnd[5] == rnd[4]) || (rnd[5] == rnd[3]) || (rnd[5] == rnd[2])
                         || (rnd[5] == rnd[1]) || (rnd[5] == rnd[0]));
@@ -145,52 +177,76 @@ public class DE {
                     rvec[k] = g0[rnd[k]];
                 }
 
+                //变异与交叉
                 Strategem[current_strategy].apply (F, Cr, dim, trial, genbest, rvec);
+                //若变异后超出了定义域，修正个体
                 for(int k =0;k<dim;k++){
                     if(trial[k]<blackBoxProblem.lowLimit || trial[k]>blackBoxProblem.highLimit){
                         trial[k] = deRandom.nextDouble(blackBoxProblem.lowLimit,blackBoxProblem.highLimit);
                     }
                 }
 
-                /*
-                double testcost = blackBoxProblem.evaluate (trial, dim);
-                //System.out.println(DEStrategyConst.DEStrategyName[current_strategy]+" "+testcost);
-                if (testcost <= cost[i]) {
-                    assign (g1[i], trial);
-                    cost[i] = testcost;
-                    if (testcost < mincost) {
-                        mincost = testcost;
-                        assign (best, trial);
-                        min_index = i;
+                //回归
+                if (isReg) {
+                    double testcost = blackBoxProblem.evaluate(trial, dim);
+                    if (testcost <= cost[i]) {
+                        all++;
+                        if(isBetter(trial,g0[i],dim)){
+                            right++;
+                        }else {
+                            //System.err.println(bbpT.evaluate(trial,dim)+" "+bbpT.evaluate(g0[i],dim));
+                        }
+                        assign(g1[i], trial);
+                        cost[i] = testcost;
+                        if (testcost < mincost) {
+                            all++;
+                            if(isBetter(trial,best,dim)){
+                                right++;
+                            }else {
+                                //System.err.println(bbpT.evaluate(trial,dim)+" "+bbpT.evaluate(best,dim));
+                            }
+                            mincost = testcost;
+                            assign(best, trial);
+                            min_index = i;
+                        }
+                    } else {
+                        assign(g1[i], g0[i]);
                     }
-                } else {
-                    assign (g1[i], g0[i]);
                 }
-                */
 
-            double testcost = blackBoxProblem.evaluate (concat(trial,dim,g0[i],dim), 2*dim);
-            //System.out.println(DEStrategyConst.DEStrategyName[current_strategy]+" "+testcost);
-            if (testcost == -1) {
-                assign (g1[i], trial);
-                cost[i] = testcost;
-                if (blackBoxProblem.evaluate (concat(trial,dim,best,dim), 2*dim) == -1) {
+                //二分类
+                if (!isReg) {
+                    all++;
+                    double testcost = blackBoxProblem.evaluate(concat(trial, dim, g0[i], dim), 2 * dim);
+                    if (testcost == -1) {
+                        if (isBetter(trial, g0[i], dim)) {
+                            right++;
+                        }else {
+                            //System.err.println(bbpT.evaluate(trial,dim)+" "+bbpT.evaluate(g0[i],dim));
+                        }
+                        assign(g1[i], trial);
+                        cost[i] = testcost;
+                        all++;
+                        if (blackBoxProblem.evaluate(concat(trial, dim, best, dim), 2 * dim) == -1) {
+                            if (isBetter(trial, best, dim)) {
+                                right++;
+                            }else {
+                                //System.err.println(bbpT.evaluate(trial,dim)+" "+bbpT.evaluate(best,dim));
+                            }
 
-                    for (int l = 0 ;l < dim;l++)
-                        System.out.print(best[l]+" ");
-
-                    mincost = testcost;
-                    assign (best, trial);
-                    min_index = i;
-                    //System.out.println(best[0]+"++++++++++++++++");
-                    System.out.print("+++"+mincost+"   ");
-                    for (int l = 0 ;l < dim;l++)
-                        System.out.print(best[l]+" ");
-                    System.out.println();
+                            mincost = testcost;
+                            assign(best, trial);
+                            min_index = i;
+                        }
+                    } else {
+                        assign(g1[i], g0[i]);
+                        if (isBetter(trial, g0[i], dim) == false) {
+                            right++;
+                        }else {
+                            //System.err.println(bbpT.evaluate(trial,dim)+" "+bbpT.evaluate(g0[i],dim));
+                        }
+                    }
                 }
-            } else {
-                assign (g1[i], g0[i]);
-            }
-
 
         }
             if (lastMincost != mincost) {
@@ -200,12 +256,6 @@ public class DE {
                 counter++;
             }
 
-
-//            System.out.print(mincost+"   ");
-//            for (int i = 0 ;i < dim;i++)
-//                System.out.print(best[i]+" ");
-//            System.out.println();
-
             assign (genbest, best);
 
             double gx[][] = g0;
@@ -213,8 +263,7 @@ public class DE {
             g1 = gx;
             //System.out.println("代数：" + generation);
             generation++;
-             BlackBoxProblem bbp = ProblemGenerator.generateBBProblem(((SVMProblem)(blackBoxProblem)).getPROBLEM_NMAE());
-            evolution.add(bbp.evaluate(best,dim)+"");
+            evolution.add(bbpT.evaluate(best,dim)+"");
         }
         for (int i = 0 ;i < dim;i++)
             System.out.print(best[i]+" ");
@@ -233,7 +282,9 @@ public class DE {
             }
         }
 
-        saveEvolutionProcess(((SVMProblem)blackBoxProblem).getPROBLEM_NMAE(),evolution);
+        if(blackBoxProblem instanceof SVMProblem)
+            saveEvolutionProcess(((SVMProblem)blackBoxProblem).getPROBLEM_NMAE(),evolution);
+        System.err.println("*********预测准确率："+1.0*right/all+"  "+right+"  "+all);
 
         return mincost;
     }
@@ -243,6 +294,16 @@ public class DE {
         for (i=0; i<dim; i++) {
             to[i] = from[i];
         }
+    }
+
+    //判断个体x1是否比个体x2适应度更好
+    public boolean isBetter(double[]x1,double[] x2,int dim) {
+        double res1 = bbpT.evaluate(x1,dim);
+        double res2 = bbpT.evaluate(x2,dim);
+        if(res1<res2)
+            return true;
+        else
+            return false;
     }
 
     private void saveEvolutionProcess(String problem,ArrayList<String> evolution) {
@@ -301,4 +362,34 @@ public class DE {
         //System.out.println("--------------------------------"+Arrays.toString(C)+"---------------------------------------");
         return C;
     }
+
+
+    public void recordLowAccuracyModel(String problem, double accuracy) {
+        String filepathAc = "svmfile/accuracy/"+problem+accuracy;
+        String filepathModel = "svmfile/model/"+problem+"_model";
+        File file = new File(filepathAc);
+
+        try {
+            if (!file.exists()) file.createNewFile();
+            FileInputStream fis = new FileInputStream(filepathModel);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+            FileWriter fos = new FileWriter(file);
+            String line="";
+            while((line=br.readLine())!=null) {
+                fos.write(line);
+                fos.write("\r\n");
+            }
+
+            fos.flush();
+            fos.close();
+            br.close();
+            fis.close();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }

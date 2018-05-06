@@ -10,7 +10,7 @@ public class ParametersFinder {
 
     //寻找回归的最优参数
     public void findRegTrainParameters(String problemName){
-        File scaleFile = new File("svmfile/scale/"+problemName+"_scale");
+        File scaleFile = new File("svmfile/train/"+problemName+"_train");
         String scaleFileAbsoluPath = scaleFile.getAbsolutePath();
         File scriptFile = new File("svmfile/script/"+regScriptFile);
         String scriptFileAbsoluPath = scriptFile.getAbsolutePath();

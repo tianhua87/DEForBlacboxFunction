@@ -1,6 +1,7 @@
 package file_generate;
 
 import svm.svm_train;
+import test.RegAndClassfyCampared;
 
 import java.io.*;
 
@@ -39,10 +40,34 @@ public class ModelGenerator {
     public void generateModelWithBestPara(String problemName, boolean campared){
         String trainFilePath = "svmfile/train/"+problemName+"_train";
         String modelFilrPath = "svmfile/model/"+problemName+"_model";
+
+
+        String parameters ="";
         generateBestPara(problemName);
-        String parameters = readParameters(problemName,false);
+        parameters = readParameters(problemName, false);
+
         //System.out.println(parameter);
-        String args = parameters+" "+trainFilePath+" "+modelFilrPath;
+        String args;
+        if(parameters.length()!=0)
+            args = parameters+" "+trainFilePath+" "+modelFilrPath;
+        else
+            args =trainFilePath+" "+modelFilrPath;
+        try {
+            svm_train.main(args.split(" "));
+            System.out.println("--------------------"+problemName+"模型生成结束--------------------");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //不归一化，使用最优参数，训练模型，回归模型
+    public void generateModelWithBestPara(String problemName){
+        String trainFilePath = "svmfile/train/"+problemName+"_train";
+        String modelFilrPath = "svmfile/model/"+problemName+"_model";
+        generateBestParaReg(problemName);
+        String parameters = readParameters(problemName,true);
+        //System.out.println(parameter);
+        String args ="-s 3 -t 2 " +parameters+" "+trainFilePath+" "+modelFilrPath;
         try {
             svm_train.main(args.split(" "));
             System.out.println("--------------------"+problemName+"模型生成结束--------------------");
@@ -89,5 +114,11 @@ public class ModelGenerator {
     public void generateBestPara(String problem) {
         ParametersFinder pf = new ParametersFinder();
         pf.findBinaryTrainParameters(problem);
+    }
+
+    //寻找回归的最优参数
+    public void generateBestParaReg(String problem) {
+        ParametersFinder pf = new ParametersFinder();
+        pf.findRegTrainParameters(problem);
     }
 }

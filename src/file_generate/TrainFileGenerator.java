@@ -72,8 +72,8 @@ public class TrainFileGenerator {
 
     public void trainFileGenerate(String problemName){
         try {
-            Class C = Class.forName("problem."+problemName);
-            BlackBoxProblem blackBoxProblem = (BlackBoxProblem) C.newInstance();
+
+            BlackBoxProblem blackBoxProblem = ProblemGenerator.generateBBProblem(problemName);
             FileOutputStream fos = new FileOutputStream("svmfile/train/"+problemName+"_train");
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             StringBuilder line = new StringBuilder();
@@ -114,10 +114,10 @@ public class TrainFileGenerator {
         }
     }
 
+    //排序，然后两两组合，生成训练文件，for 分类
     public void trainFileGenerate(String problemName,double[][]p,double[] cost,boolean campared){
         try {
-            Class C = Class.forName("problem."+problemName);
-            BlackBoxProblem blackBoxProblem = (BlackBoxProblem) C.newInstance();
+            BlackBoxProblem blackBoxProblem = ProblemGenerator.generateBBProblem(problemName);
             FileOutputStream fos = new FileOutputStream("svmfile/train/"+problemName+"_train");
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
             StringBuilder line = new StringBuilder();
@@ -160,6 +160,5 @@ public class TrainFileGenerator {
         }
         System.out.println("--------------------"+problemName+"训练文件生成结束--------------------");
     }
-
 
 }
