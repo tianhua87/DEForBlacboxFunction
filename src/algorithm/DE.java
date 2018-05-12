@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 public class DE {
 
-    public static  boolean isReg =false;
+    public static  boolean isReg =true;
 
     public int generation  = 0;
     public double mincost  = Double.MAX_VALUE;

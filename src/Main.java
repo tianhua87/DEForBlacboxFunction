@@ -28,8 +28,8 @@ public class Main {
 
 
     public static void testUpdate() {
-        //Ackley,Beale,Bohachevsky1,Branin,Rastrigin,Shekel2,Kowalik,SixHumpCamel'
-        String problem = "Branin";
+        //Ackley,Beale,Bohachevsky1,Branin,Rastrigin,Shekel2,Kowalik,SixHumpCamel',Matyas,Exp2,GoldsteinPrice,Booth
+        String problem = "Beale";
         DEOptimizer deOptimizer = new DEOptimizer();
         deOptimizer.optimizeModel(problem);
     }

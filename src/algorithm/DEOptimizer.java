@@ -18,9 +18,8 @@ public class DEOptimizer {
     public static final int MAX_COUNT = 100;
     public static int oldestIndex = 0;
     public static final String UPDATE_MODEL_ADD = "add";
-    public static final String UPDATE_MODEL_OLDEST = "replaceOldest";
     public static final String UPDATE_MODEL_WORST = "replaceWorst";
-    public static String updateModel = UPDATE_MODEL_WORST;
+    public static String updateModel = UPDATE_MODEL_ADD;
 
     //初始数据
     int initPopSize ;
